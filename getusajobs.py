@@ -2,11 +2,11 @@ import requests, csv
 
 URL = "https://data.usajobs.gov/api/Search?ResultsPerPage=500&fields=all"
 CSVHEADER = ["title", "profession", "location", "salaryMin", "salaryMax", "description", "company"]
-NUM_REQUESTS = 10000 / 500 # (number of total records/results per page)
+NUM_REQUESTS = (10000 // 500) # (number of total records/results per page)
 
 
 def getjobs(pageNumber):
-	print("Getting Page: " + str(pageNumber))
+	print("Getting Page: " + str(pageNumber) + "/" + str(NUM_REQUESTS))
 	r = requests.get(URL + "&Page=" + str(pageNumber), headers={
 		"User-Agent": "lichlyts@oregonstate.edu",
 		"Authorization-Key": "AwSreIf3ou/sSK0REHzwalyVPWSYZgwIQgzpD7SyNww="
@@ -50,6 +50,6 @@ def savejobs(jobs):
 
 if __name__ == "__main__":
 	initjobs()
-	for page in range(1, NUM_REQUESTS):
+	for page in range(1, NUM_REQUESTS + 1):
 		jobs = getjobs(page)
 		savejobs(jobs)
