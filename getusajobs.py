@@ -6,6 +6,7 @@ NUM_REQUESTS = 10000 / 500 # (number of total records/results per page)
 
 
 def getjobs(pageNumber):
+	print("Getting Page: " + str(pageNumber))
 	r = requests.get(URL + "&Page=" + str(pageNumber), headers={
 		"User-Agent": "lichlyts@oregonstate.edu",
 		"Authorization-Key": "AwSreIf3ou/sSK0REHzwalyVPWSYZgwIQgzpD7SyNww="
@@ -15,12 +16,14 @@ def getjobs(pageNumber):
 
 
 def initjobs():
+	print("Initializing...")
 	with open('usajobs.csv', 'w') as usajobs:
 		writer = csv.DictWriter(usajobs, fieldnames = CSVHEADER)
 		writer.writeheader()
 
 
 def savejobs(jobs):
+	print("Saving...")
 	with open('usajobs.csv', 'a') as usajobs:
 		writer = csv.DictWriter(usajobs, fieldnames = CSVHEADER)
 		for job in jobs:
