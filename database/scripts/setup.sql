@@ -49,6 +49,7 @@ CREATE TABLE IF NOT EXISTS cm_living_cost (
 
 CREATE TABLE IF NOT EXISTS cm_index (
     iid INT NOT NULL AUTO_INCREMENT,
+    i_location INT NOT NULL,
     i_safety FLOAT,
     i_health FLOAT,
     i_crime FLOAT,
@@ -58,6 +59,7 @@ CREATE TABLE IF NOT EXISTS cm_index (
     i_groceries FLOAT,
     i_rent FLOAT,
 
-    PRIMARY KEY (iid)
+    PRIMARY KEY (iid),
+    FOREIGN KEY (i_location) REFERENCES cm_location (lid)
 );
 
