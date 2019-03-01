@@ -6,10 +6,9 @@ const _readFile = util.promisify(fs.readFile);
 
 module.exports = {
     import: async connection => {
-        let rawData = await _readFile(path.join(__dirname, '..', 'data', 'index.csv'), 'utf8');
-        let rawDataLines = rawData.split('\n');
-
         try {
+            let rawData = await _readFile(path.join(__dirname, '..', 'data', 'index.csv'), 'utf8');
+            let rawDataLines = rawData.split('\n');
             for (var line of rawDataLines) {
                 var data = extractIndexData(line);
                 if (data) {
@@ -43,8 +42,8 @@ module.exports = {
                         data.rent
                     ];
                     let query = 'INSERT INTO cm_index ';
-                    query +=
-                        '(i_location, i_safety, i_health, i_crime, i_traffic, i_pollution, i_quality_of_life, i_groceries, i_rent) ';
+                    query += '(i_location, i_safety, i_health, i_crime, i_traffic, i_pollution, i_quality_of_life, ';
+                    query += 'i_groceries, i_rent) ';
                     query += 'VALUES(?,?,?,?,?,?,?,?,?)';
                     [res, fields] = await connection.query(query, params);
                 }
