@@ -7,7 +7,14 @@ const _readFile = util.promisify(fs.readFile);
 module.exports = {
     import: async connection => {
         try {
-            let rawData = await _readFile(path.join(__dirname, '..', 'data', 'indeed.tsv'), 'utf8');
+            let rawData = await _readFile(path.join(__dirname, '..', 'data', 'usajobs.tsv'), 'utf8');
+            let stateMappingsText = await _readFile(path.join(__dirname, '..', 'data', 'state-mappings.txt'), 'utf8');
+            let stateMappingsArray = stateMappingsText.split('\n');
+            const stateMappings = {};
+            stateMappingsArray.forEach(line => {
+                let [long, short] = line.split(',');
+                stateMappings[long] = short;
+            });
             let rawDataLines = rawData.split('\n');
 
             let head = true;
@@ -16,7 +23,7 @@ module.exports = {
                 if (head) {
                     head = false;
                 } else {
-                    let data = extractData(line);
+                    let data = extractData(line, stateMappings);
                     if (data) {
                         // Get the company ID. If the company isn't in the table, add it
                         let params = [data.company];
@@ -86,28 +93,29 @@ module.exports = {
 
 const hoursWorkedPerYear = 1811;
 
-function extractData(line) {
+function extractData(line, stateMappings) {
     let parts = line.split('\t');
     let title = parts[0].toLowerCase();
-    let profession = parts[1].toLowerCase();
-    let company = parts[2];
-    let locationParts = parts[3].split(',');
-    // Some of the entries only have the country. We don't want this data, as most of it doesn't have
-    // salary data anyways
-    if (locationParts.length < 2) {
+    let profession = parts[1].toLowerCase().trim();
+    let locationParts = parts[2].split(',');
+    let city = locationParts[0].trim();
+    let state = stateMappings[locationParts[1].trim()];
+    // The state isn't valid, meaning it didn't map to a code correctly. Throw out
+    // the dataset
+    if (!state) {
         return null;
     }
-    let city = locationParts[0].trim();
-    let stateParts = locationParts[1].trim().split(' ');
-    let state = stateParts[0];
-    let salaryMin = parts[4] !== '' ? parseInt(parts[4]) : null;
-    let salaryMax = parts[5] !== '' ? parseInt(parts[5]) : null;
+    let salaryMin = parts[3] !== '' ? parseFloat(parts[3]) : null;
+    let salaryMax = parts[4] !== '' ? parseFloat(parts[4]) : null;
     // We don't want data that is missing salary information...
     if (salaryMin === null || salaryMax === null) {
         return null;
     }
     if (salaryMin < 100) salaryMin *= hoursWorkedPerYear;
     if (salaryMax < 100) salaryMax *= hoursWorkedPerYear;
+    salaryMin = Math.floor(salaryMin);
+    salaryMax = Math.floor(salaryMax);
+    let company = parts[6].replace(/[\n\r]+/g, '');
 
     return {
         title,
