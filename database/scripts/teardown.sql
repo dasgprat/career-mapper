@@ -1,0 +1,6 @@
+DROP TABLE IF EXISTS cm_index;
+DROP TABLE IF EXISTS cm_living_cost;
+DROP TABLE IF EXISTS cm_job;
+DROP TABLE IF EXISTS cm_location;
+DROP TABLE IF EXISTS cm_company;
+DROP TABLE IF EXISTS cm_profession;

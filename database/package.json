@@ -1,0 +1,15 @@
+{
+  "name": "career-mapper-db",
+  "version": "1.0.0",
+  "description": "Data importers for the career mapper",
+  "main": "import.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "config": "^3.0.1",
+    "mysql2": "^1.6.5"
+  }
+}
