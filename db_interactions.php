@@ -2,6 +2,32 @@
 	
 	include_once('dbconnect.php');
 	
+	function getStates($mysqli) {
+		if (!($res = $mysqli->query("SELECT DISTINCT `l_state` FROM `cm_location` ORDER BY `l_state`"))) {
+			echo "Failed Select";
+		}
+		
+		$data = [];
+		while ($row = $res->fetch_assoc()) {
+			array_push($data, $row["l_state"]);
+		}
+		
+		return $data;
+	}
+	
+	function getCities($mysqli, $stateAbbreviation) {
+		if (!($res = $mysqli->query("SELECT `l_city` FROM `cm_location` WHERE `l_state`='$stateAbbreviation'"))) {
+			echo "Select Failed";
+		}
+		
+		$data = [];
+		while ($row = $res->fetch_assoc()) {
+			array_push($data, $row["l_city"]);
+		}
+		
+		return $data;
+	}
+	
 	function getIndeces($mysqli, $city, $stateAbbreviation) {
 		if (!($res = $mysqli->query("select p.p_name,count(j.jid),avg(j.j_salary_max),avg(j.j_salary_min) ,max(i.i_quality_of_life)  
 	        from cm_job j left join cm_company c ON j.j_company = c.cid 
@@ -26,6 +52,5 @@
 		}
 		
 		return $data;
-	}
-	
+	}	
 ?>

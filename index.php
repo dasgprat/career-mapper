@@ -8,7 +8,7 @@
 	</head>
 	<body>
 		<h1 id="title">Career Mapper</h1>
-		<div id="controls" class="nicebox">
+		<div id="controls" class="nicebox" hidden="hidden">
 			<div>
 				<select id="census-variable">
 					<option value="https://storage.googleapis.com/mapsdevsite/json/DP02_0066PE">Percent of population over 25 that completed high
@@ -25,9 +25,24 @@ school</option>
 				<div id="census-max">max</div>
 			</div>
 		</div>
-		<div id="data-box" class="nicebox">
+		<div id="data-box" class="nicebox" hidden="hidden">
 			<label id="data-label" for="data-value"></label>
 			<span id="data-value"></span>
+		</div>
+		<div id="options">
+			State: 
+			<select id="state">
+				<option value="init">--- Select State ---</option>
+			</select>
+			City: <select id="city">
+				<option value="init">--- Select City ---</option>
+			</select>
+			Job:
+			<select id="job">
+				<option value="init">--- Select Job ---</option>
+			</select>
+		</div>
+				
 		</div>
 		<div id="map"></div>
 	
@@ -65,12 +80,34 @@ school</option>
 			// wire up the button
 			var selectBox = document.getElementById('census-variable');
 			google.maps.event.addDomListener(selectBox, 'change', function() {
-			clearCensusData();
-			loadCensusData(selectBox.options[selectBox.selectedIndex].value);
+				clearCensusData();
+				loadCensusData(selectBox.options[selectBox.selectedIndex].value);
 			});
 			
 			// state polygons only need to be loaded once, do them now
 			loadMapShapes();
+			
+			// load career-mapper data
+			loadStates();
+			
+			// load cities when new state selected
+			let stateSelector = document.getElementById("state");
+			stateSelector.addEventListener('change', function() {
+				// load cities
+				let state = stateSelector.options[stateSelector.selectedIndex].value;
+				clearSelect('city');
+				loadCities(state);
+			});
+			
+			// load jobs when new city selected
+			let citySelector = document.getElementById("city");
+			citySelector.addEventListener('change', function() {
+				// load job data of city selected
+				let city = citySelector.options[citySelector.selectedIndex].value;
+				let state = stateSelector.options[stateSelector.selectedIndex].value;
+				clearSelect('job');
+				loadJobs(city, state);
+			});
 		
 		}
 
@@ -121,6 +158,57 @@ school</option>
 				document.getElementById('census-max').textContent = censusMax.toLocaleString();
 			};
 			xhr.send();
+		}
+		
+		function loadStates() {
+			$.ajax({
+				url: "api.php",
+				type: "GET",
+				dataType: 'json',
+				success: function(json) {
+					$.each(json, function(i, value) {
+						$("#state").append($('<option>').text(value).attr('value', value));
+					});				
+				}
+			});
+		}
+		
+		function loadCities(state) {
+			$.ajax({
+				url: "api.php",
+				type: "GET",
+				data: "state=" + state,
+				dataType: 'json',
+				success: function(json) {
+					$.each(json, function(i, value) {
+						$("#city").append($('<option>').text(value).attr('value', value));
+					});
+				}
+			});
+		}
+		
+		function loadJobs(city, state) {
+			$.ajax({
+				url: "api.php",
+				type: "GET",
+				data: "city=" + city + "&state=" + state,
+				dataType: 'json',
+				success: function(json) {
+					$.each(json, function(i, value) {
+						let name = value["name"];
+						$("#job").append($('<option>').text(name).attr('value', name));
+					});
+				}
+			});
+		}
+		
+		// remove old elements
+		function clearSelect(id) {
+			let e = document.getElementById(id);
+			let n = e.options.length;
+			for (var i = n; i > 0; i--) {
+				e.options.remove(i);
+			}
 		}
 
 		/** Removes census data from each shape on the map and resets the UI. */
@@ -188,12 +276,14 @@ school</option>
 			var percent = (e.feature.getProperty('census_variable') - censusMin) /
 			(censusMax - censusMin) * 100;
 			
-			// update the label
+			/*
+// update the label
 			document.getElementById('data-label').textContent = e.feature.getProperty('NAME');
 			document.getElementById('data-value').textContent = e.feature.getProperty('census_variable').toLocaleString();
 			document.getElementById('data-box').style.display = 'block';
 			document.getElementById('data-caret').style.display = 'block';
 			document.getElementById('data-caret').style.paddingLeft = percent + '%';
+*/
 		}
 			
 		/**
@@ -210,5 +300,6 @@ school</option>
 	<script async defer
 		src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAS8p97oXW9Fbwg2ly4-zHxkmYZvag0MZc&callback=initMap">
 	</script>
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
 	</body>
 </html>
