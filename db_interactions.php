@@ -15,7 +15,13 @@
 	
 		$data = [];
 		while ($row = $res->fetch_assoc()) {
-			array_push($data, $row);	
+			$r = [];
+			$r['name'] = $row['p_name'];
+			$r['count'] = $row['count(j.jid)'];
+			$r['salary_max'] = $row['avg(j.j_salary_max)'];
+			$r['salary_min'] = $row['avg(j.j_salary_min)'];
+			$r['quality_of_life'] = $row['max(i.i_quality_of_life)'];
+			array_push($data, $r);	
 		}
 		
 		return $data;
