@@ -15,6 +15,7 @@
 	
 		$data = [];
 		while ($row = $res->fetch_assoc()) {
+			// reformat data
 			$r = [];
 			$r['name'] = $row['p_name'];
 			$r['count'] = $row['count(j.jid)'];
