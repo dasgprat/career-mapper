@@ -85,6 +85,27 @@
 			case 'quality':
 				$sql = "select l.l_state, avg(i.i_quality_of_life) as avg_quality from cm_index i left join cm_location l on i.i_location = l.lid group by l.l_state order by i.i_quality_of_life desc";
 				break;
+			case 'crime':
+				$sql= "select l.l_state, avg(i.i_crime) as avg_crime from cm_index i left join cm_location l on i.i_location = l.lid group by l.l_state order by i.i_crime desc";
+				break;
+			case 'groceries':
+				$sql= "select l.l_state, avg(i.i_groceries) as avg_groceries from cm_index i left join cm_location l on i.i_location = l.lid group by l.l_state order by i.i_groceries desc";
+				break;
+			case 'health':
+				$sql= "select l.l_state, avg(i.i_health) as avg_health from cm_index i left join cm_location l on i.i_location = l.lid group by l.l_state order by i.i_health desc";
+				break;
+			case 'pollution':
+				$sql= "select l.l_state, avg(i.i_pollution) as avg_pollution from cm_index i left join cm_location l on i.i_location = l.lid group by l.l_state order by i.i_pollution desc";
+				break;
+			case 'rent':
+				$sql= "select l.l_state, avg(i.i_rent) as avg_rent from cm_index i left join cm_location l on i.i_location = l.lid group by l.l_state order by i.i_rent desc";
+				break;
+			case 'safety':
+				$sql= "select l.l_state, avg(i.i_safety) as avg_safety from cm_index i left join cm_location l on i.i_location = l.lid group by l.l_state order by i.i_safety desc";
+				break;
+			case 'traffic':
+				$sql= "select l.l_state, avg(i.i_traffic) as avg_traffic from cm_index i left join cm_location l on i.i_location = l.lid group by l.l_state order by i.i_traffic desc";
+				break;
 			default: break;
 		}
 		
@@ -96,7 +117,7 @@
 		while ($row = $res->fetch_assoc()) {
 			$r = [];
 			$r['state'] = $row['l_state'];
-			$r['quality'] = $row['avg_quality'];
+			$r['index'] = $row['avg_'.$index];
 			array_push($data, $r);
 		}
 		

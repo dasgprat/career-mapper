@@ -12,11 +12,13 @@
 			<div>
 				<select id="census-variable">
 					<option value="quality">Quality of Life</option>
-<!--
-					<option value=""></option>
-					<option value=""></option>
-					<option value=""></option>
--->
+					<option value="crime">Crime</option>
+					<option value="groceries">Groceries</option>
+					<option value="health">Health</option>
+					<option value="pollution">Pollution</option>
+					<option value="rent">Rent</option>
+					<option value="safety">Safety</option>
+					<option value="traffic">Traffic</option>
 				</select>
 			</div>
 			<div id="legend">
@@ -184,7 +186,7 @@
 				success: function(json) {
 					$.each(json, function(i, value) {
 						let state = toStateName(value['state']);
-						var indexValue = parseFloat(value[index]);
+						var indexValue = parseFloat(value['index']);
 						
 						if (indexValue < censusMin) {
 							censusMin = indexValue;
