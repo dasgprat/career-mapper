@@ -52,5 +52,29 @@
 		}
 		
 		return $data;
-	}	
+	}
+	
+	function getIndex($mysqli, $index) {
+		$sql = "";
+		switch ($index) {
+			case 'quality':
+				$sql = "select l.l_state, avg(i.i_quality_of_life) as avg_quality from cm_index i left join cm_location l on i.i_location = l.lid group by l.l_state order by i.i_quality_of_life desc";
+				break;
+			default: break;
+		}
+		
+		if (!($res = $mysqli->query($sql))) {
+			echo "Failed Select";
+		}
+		
+		$data = [];
+		while ($row = $res->fetch_assoc()) {
+			$r = [];
+			$r['state'] = $row['l_state'];
+			$r['quality'] = $row['avg_quality'];
+			array_push($data, $r);
+		}
+		
+		return $data;
+	}
 ?>

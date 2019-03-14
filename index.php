@@ -8,14 +8,15 @@
 	</head>
 	<body>
 		<h1 id="title">Career Mapper</h1>
-		<div id="controls" class="nicebox" hidden="hidden">
+		<div id="controls" class="nicebox">
 			<div>
 				<select id="census-variable">
-					<option value="https://storage.googleapis.com/mapsdevsite/json/DP02_0066PE">Percent of population over 25 that completed high school</option>
-					<option value="https://storage.googleapis.com/mapsdevsite/json/DP05_0017E">Median age</option>
-					<option value="https://storage.googleapis.com/mapsdevsite/json/DP05_0001E">Total population</option>
-					<option value="https://storage.googleapis.com/mapsdevsite/json/DP02_0016E">Average family size</option>
-					<option value="https://storage.googleapis.com/mapsdevsite/json/DP03_0088E">Per-capita income</option>
+					<option value="quality">Quality of Life</option>
+<!--
+					<option value=""></option>
+					<option value=""></option>
+					<option value=""></option>
+-->
 				</select>
 			</div>
 			<div id="legend">
@@ -24,7 +25,7 @@
 				<div id="census-max">max</div>
 			</div>
 		</div>
-		<div id="data-box" class="nicebox" hidden="hidden">
+		<div id="data-box" class="nicebox">
 			<label id="data-label" for="data-value"></label>
 			<span id="data-value"></span>
 		</div>
@@ -102,8 +103,9 @@
 			// wire up the button
 			var selectBox = document.getElementById('census-variable');
 			google.maps.event.addDomListener(selectBox, 'change', function() {
+				let index = getSelected(selectBox);
 				clearCensusData();
-				loadCensusData(selectBox.options[selectBox.selectedIndex].value);
+				loadIndex(index);
 			});
 			
 			// state polygons only need to be loaded once, do them now
@@ -147,7 +149,7 @@
 		/** Loads the state boundary polygons from a GeoJSON source. */
 		function loadMapShapes() {
 			// load US state outline polygons from a GeoJson file
-			map.data.loadGeoJson('https://storage.googleapis.com/mapsdevsite/json/states.js',{ idPropertyName: 'STATE' });
+			map.data.loadGeoJson('https://storage.googleapis.com/mapsdevsite/json/states.js',{ idPropertyName: 'NAME' });
 			
 			// wait for the request to complete by listening for the first feature to be
 			// added
@@ -155,42 +157,35 @@
 				google.maps.event.trigger(document.getElementById('census-variable'),'change');
 			});
 		}
-
-		/**
-		* Loads the census data from a simulated API call to the US Census API.
-		*
-		* @param {string} variable
-		*/
-		function loadCensusData(variable) {
-			// load the requested variable from the census API (using local copies)
-			var xhr = new XMLHttpRequest();
-			xhr.open('GET', variable + '.json');
-			xhr.onload = function() {
-			
-				var censusData = JSON.parse(xhr.responseText);
-				censusData.shift(); // the first row contains column names
-				censusData.forEach(function(row) {
-				
-					var censusVariable = parseFloat(row[0]);
-					var stateId = row[1];
+		
+		function loadIndex(index) {
+			$.ajax({
+				url: "api.php",
+				type: "GET",
+				data: "index=" + index,
+				dataType: 'json',
+				success: function(json) {
+					$.each(json, function(i, value) {
+						let state = toStateName(value['state']);
+						var indexValue = parseFloat(value[index]);
+						
+						if (indexValue < censusMin) {
+							censusMin = indexValue;
+						}
+						if (indexValue > censusMax) {
+							censusMax = indexValue;
+						}
+						
+						if (state != undefined && indexValue != NaN) {
+							map.data.getFeatureById(state).setProperty('census_variable', indexValue);	
+						}
+					});
 					
-					// keep track of min and max values
-					if (censusVariable < censusMin) {
-						censusMin = censusVariable;
-					}
-					if (censusVariable > censusMax) {
-						censusMax = censusVariable;
-					}
-				
-					// update the existing row with the new data
-					map.data.getFeatureById(stateId).setProperty('census_variable', censusVariable);
-				});
-				
-				// update and display the legend
-				document.getElementById('census-min').textContent = censusMin.toLocaleString();
-				document.getElementById('census-max').textContent = censusMax.toLocaleString();
-			};
-			xhr.send();
+					// update and display the legend
+					document.getElementById('census-min').textContent = censusMin.toLocaleString();
+					document.getElementById('census-max').textContent = censusMax.toLocaleString();
+				}
+			});
 		}
 		
 		function loadStates() {
@@ -308,7 +303,7 @@
 			map.data.forEach(function(row) {
 				row.setProperty('census_variable', undefined);
 			});
-			document.getElementById('data-box').style.display = 'none';
+			document.getElementById('data-box').style.visibility = 'hidden';
 			document.getElementById('data-caret').style.display = 'none';
 		}
 
@@ -366,14 +361,13 @@
 			var percent = (e.feature.getProperty('census_variable') - censusMin) /
 			(censusMax - censusMin) * 100;
 			
-			/*
-// update the label
+			// update the label
 			document.getElementById('data-label').textContent = e.feature.getProperty('NAME');
 			document.getElementById('data-value').textContent = e.feature.getProperty('census_variable').toLocaleString();
 			document.getElementById('data-box').style.display = 'block';
+			document.getElementById('data-box').style.visibility = 'visible';
 			document.getElementById('data-caret').style.display = 'block';
 			document.getElementById('data-caret').style.paddingLeft = percent + '%';
-*/
 		}
 			
 		/**
@@ -390,6 +384,64 @@
 			style: 'currency',
 			currency: 'USD',
 		});
+		
+		function toStateName(state) {
+			let states = { 
+				AZ: 'Arizona',
+				AL: 'Alabama',
+				AK: 'Alaska',
+				AR: 'Arkansas',
+				CA: 'California',
+				CO: 'Colorado',
+				CT: 'Connecticut',
+				DC: 'District of Columbia',
+				DE: 'Delaware',
+				FL: 'Florida',
+				GA: 'Georgia',
+				HI: 'Hawaii',
+				ID: 'Idaho',
+				IL: 'Illinois',
+				IN: 'Indiana',
+				IA: 'Iowa',
+				KS: 'Kansas',
+				KY: 'Kentucky',
+				LA: 'Louisiana',
+				ME: 'Maine',
+				MD: 'Maryland',
+				MA: 'Massachusetts',
+				MI: 'Michigan',
+				MN: 'Minnesota',
+				MS: 'Mississippi',
+				MO: 'Missouri',
+				MT: 'Montana',
+				NE: 'Nebraska',
+				NV: 'Nevada',
+				NH: 'New Hampshire',
+				NJ: 'New Jersey',
+				NM: 'New Mexico',
+				NY: 'New York',
+				NC: 'North Carolina',
+				ND: 'North Dakota',
+				OH: 'Ohio',
+				OK: 'Oklahoma',
+				OR: 'Oregon',
+				PA: 'Pennsylvania',
+				RI: 'Rhode Island',
+				SC: 'South Carolina',
+				SD: 'South Dakota',
+				TN: 'Tennessee',
+				TX: 'Texas',
+				UT: 'Utah',
+				VT: 'Vermont',
+				VA: 'Virginia',
+				WA: 'Washington',
+				WV: 'West Virginia',
+				WI: 'Wisconsin',
+				WY: 'Wyoming' 
+			};
+			
+			return states[state];
+		}
 
 	</script>
 	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>

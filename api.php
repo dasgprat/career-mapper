@@ -2,8 +2,16 @@
 	
 		include_once('db_interactions.php');
 		
+		// Example: career-mapper/api.php?index=quality
+		if (isset($_GET['index'])) {
+			$index = $_GET['index'];
+			$data = getIndex($mysqli, $index);
+			$json = json_encode($data);
+			echo $json;
+		}
+		
 		// Example: career-mapper/api.php?city=Fremont&state=CA
-		if (isset($_GET['city']) && isset($_GET['state'])) {
+		else if (isset($_GET['city']) && isset($_GET['state'])) {
 			$city = $_GET['city'];
 			$state = $_GET['state'];
 			
