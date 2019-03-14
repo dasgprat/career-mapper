@@ -11,8 +11,7 @@
 		<div id="controls" class="nicebox" hidden="hidden">
 			<div>
 				<select id="census-variable">
-					<option value="https://storage.googleapis.com/mapsdevsite/json/DP02_0066PE">Percent of population over 25 that completed high
-school</option>
+					<option value="https://storage.googleapis.com/mapsdevsite/json/DP02_0066PE">Percent of population over 25 that completed high school</option>
 					<option value="https://storage.googleapis.com/mapsdevsite/json/DP05_0017E">Median age</option>
 					<option value="https://storage.googleapis.com/mapsdevsite/json/DP05_0001E">Total population</option>
 					<option value="https://storage.googleapis.com/mapsdevsite/json/DP02_0016E">Average family size</option>
@@ -29,12 +28,14 @@ school</option>
 			<label id="data-label" for="data-value"></label>
 			<span id="data-value"></span>
 		</div>
+		<div id="map"></div>
 		<div id="options">
 			State: 
 			<select id="state">
 				<option value="init">--- Select State ---</option>
 			</select>
-			City: <select id="city">
+			City: 
+			<select id="city">
 				<option value="init">--- Select City ---</option>
 			</select>
 			Job:
@@ -42,10 +43,27 @@ school</option>
 				<option value="init">--- Select Job ---</option>
 			</select>
 		</div>
-				
+		<div id="data-boxes">
+			<div id="city-data">
+				<h3 id="city-name"></h3>
+				<table id="city-table">
+					<tr>
+						<th>Quality of Life</th>
+					</tr>
+				</table>
+			</div>
+			<div id="job-data">
+				<h3>Jobs</h3>
+				<table id="job-table">
+					<tr>
+						<th>Name</th>
+						<th>Number of Jobs</th>
+						<th>Average Salary Min</th>
+						<th>Average Salary Max</th>
+					</tr>
+				</table>
+			</div>
 		</div>
-		<div id="map"></div>
-	
 	<script>
 		var mapStyle = [{
 			'stylers': [{'visibility': 'off'}]
@@ -60,15 +78,19 @@ school</option>
 		}];
 		
 		var map;
+		var data;
 		var censusMin = Number.MAX_VALUE, censusMax = -Number.MAX_VALUE;
 
 		function initMap() {
 		
 			// load the map
 			map = new google.maps.Map(document.getElementById('map'), {
-			center: {lat: 40, lng: -100},
-			zoom: 4,
-			styles: mapStyle
+				center: {lat: 40, lng: -100},
+				zoom: 4,
+				styles: mapStyle,
+				streetViewControl: false,
+				mapTypeControl: false,
+				fullscreenControl: false
 			});
 			
 			
@@ -94,7 +116,7 @@ school</option>
 			let stateSelector = document.getElementById("state");
 			stateSelector.addEventListener('change', function() {
 				// load cities
-				let state = stateSelector.options[stateSelector.selectedIndex].value;
+				let state = getSelected(stateSelector);
 				clearSelect('city');
 				loadCities(state);
 			});
@@ -103,12 +125,23 @@ school</option>
 			let citySelector = document.getElementById("city");
 			citySelector.addEventListener('change', function() {
 				// load job data of city selected
-				let city = citySelector.options[citySelector.selectedIndex].value;
-				let state = stateSelector.options[stateSelector.selectedIndex].value;
+				let city = getSelected(citySelector);
+				let state = getSelected(stateSelector);
 				clearSelect('job');
 				loadJobs(city, state);
 			});
+			
+			// load city and job information when job selected
+			let jobSelector = document.getElementById("job");
+			jobSelector.addEventListener('change', function() {
+				// load indeces
+				let job = getSelected(jobSelector);
+				showJob(job);
+			});
+		}
 		
+		function getSelected(selector) {
+			return selector.options[selector.selectedIndex].value;
 		}
 
 		/** Loads the state boundary polygons from a GeoJSON source. */
@@ -194,6 +227,8 @@ school</option>
 				data: "city=" + city + "&state=" + state,
 				dataType: 'json',
 				success: function(json) {
+					data = json;
+					setData(city, state);
 					$.each(json, function(i, value) {
 						let name = value["name"];
 						$("#job").append($('<option>').text(name).attr('value', name));
@@ -202,13 +237,68 @@ school</option>
 			});
 		}
 		
-		// remove old elements
+		function setData(city, state) {
+			// clear old data
+			clearData();
+			
+			// load city data
+			$("#city-name").text(capitalize(city) + ", " + state);
+			
+			// load job data
+			let jobs = data;
+			$.each(jobs, function(i, value) {
+				addJob(value);
+			});	
+			
+			// show data
+			$("#data-boxes").css("visibility", "visible");		
+		}
+		
+		function addJob(job) {
+			$("#job-table").append("<tr class='job-data-row' id='" + job["name"] + "'>" + 
+										"<td>" + job["name"] + "</td>" + 
+										"<td>" + job["count"] + "</td>" + 
+										"<td>" + formatter.format(job["salary_min"]) + "</td>" + 
+										"<td>" + formatter.format(job["salary_max"]) + "</td>" + 
+									"</tr>");
+		}
+		
+		function capitalize(string) {
+			return string.charAt(0).toUpperCase() + string.slice(1);
+		}
+		
+		// remove old elements of selectors
 		function clearSelect(id) {
 			let e = document.getElementById(id);
 			let n = e.options.length;
 			for (var i = n; i > 0; i--) {
 				e.options.remove(i);
 			}
+		}
+		
+		// removes data from data boxes
+		function clearData() {
+			let cityTable = document.getElementById("city-table");
+			let jobsTable = document.getElementById("job-table");
+			clearTable(cityTable);
+			clearTable(jobsTable);
+		}
+		
+		function clearTable(e) {
+			let n = e.rows.length;
+			for (var i = n - 1; i > 0; i--) {
+				e.deleteRow(i);
+			}
+		}
+		
+		function showJob(name) {
+			let jobTable = document.getElementById("job-table");
+			clearTable(jobTable);
+			$.each(data, function(i, value) {
+				if (value["name"] == name) {
+					addJob(value);
+				}
+			})
 		}
 
 		/** Removes census data from each shape on the map and resets the UI. */
@@ -296,10 +386,15 @@ school</option>
 			e.feature.setProperty('state', 'normal');
 		}
 
+		let formatter = new Intl.NumberFormat('en-US', {
+			style: 'currency',
+			currency: 'USD',
+		});
+
 	</script>
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
 	<script async defer
 		src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAS8p97oXW9Fbwg2ly4-zHxkmYZvag0MZc&callback=initMap">
 	</script>
-	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
 	</body>
 </html>

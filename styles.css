@@ -1,4 +1,44 @@
-html, body, #map { height: 600px; margin: 0; padding: 0; overflow: hidden; }
+html, body, #map { 
+	margin: 0; 
+	padding: 0;
+	font-family: "Futura";
+}
+
+#map {
+	height: 450px;
+	position: relative;
+	margin-bottom: 75px;
+}
+
+#options {
+	display: block;
+	text-align: center;
+}
+
+table {
+	color: white;
+	background-color: lightseagreen;
+	border: 1px solid black;
+}
+
+table, th, td {
+	border: 1px solid black;
+	border-collapse: collapse;
+}
+
+th, td {
+	padding: 5px;
+}
+
+#data-boxes div {
+	display: inline-block;
+}
+
+#data-boxes {
+	text-align: center;
+	visibility: hidden;
+	margin-bottom: 100px;
+}
 
 .nicebox {
 	position: absolute;
