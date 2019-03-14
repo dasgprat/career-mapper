@@ -39,17 +39,26 @@
 			<select id="city">
 				<option value="init">--- Select City ---</option>
 			</select>
-			Job:
-			<select id="job">
-				<option value="init">--- Select Job ---</option>
+			Data to Display:
+			<select id="table">
+				<option value="indexes">Index Data</option>
+				<option value="jobs">Job Data</option>
 			</select>
 		</div>
 		<div id="data-boxes">
 			<div id="city-data">
-				<h3 id="city-name"></h3>
+				<h3 id="city-name">SELECT STATE</h3>
 				<table id="city-table">
 					<tr>
+						<th>City</th>
 						<th>Quality of Life</th>
+						<th>Crime</th>
+						<th>Groceries</th>
+						<th>Health</th>
+						<th>Pollution</th>
+						<th>Rent</th>
+						<th>Safety</th>
+						<th>Traffic</th>
 					</tr>
 				</table>
 			</div>
@@ -80,6 +89,7 @@
 		
 		var map;
 		var data;
+		var indexes;
 		var censusMin = Number.MAX_VALUE, censusMax = -Number.MAX_VALUE;
 
 		function initMap() {
@@ -120,7 +130,9 @@
 				// load cities
 				let state = getSelected(stateSelector);
 				clearSelect('city');
+				clearTable(document.getElementById("city-table"));
 				loadCities(state);
+				loadStateIndexes(state);
 			});
 			
 			// load jobs when new city selected
@@ -129,16 +141,21 @@
 				// load job data of city selected
 				let city = getSelected(citySelector);
 				let state = getSelected(stateSelector);
-				clearSelect('job');
+				showCityIndex(city);
 				loadJobs(city, state);
 			});
 			
-			// load city and job information when job selected
-			let jobSelector = document.getElementById("job");
-			jobSelector.addEventListener('change', function() {
-				// load indeces
-				let job = getSelected(jobSelector);
-				showJob(job);
+			// show table depending on selection
+			let tableSelector = document.getElementById("table");
+			tableSelector.addEventListener('change', function() {
+				// hide both tables
+				$("#data-boxes div").css("display", "none");
+				let selected = getSelected(tableSelector);
+				if (selected == "indexes") {
+					$("#city-data").css("display", "inline-block");
+				} else {
+					$("#job-data").css("display", "inline-block");
+				}
 			});
 		}
 		
@@ -201,6 +218,22 @@
 			});
 		}
 		
+		function loadStateIndexes(state) {
+			$.ajax({
+				url: "api.php",
+				type: "GET",
+				data: "index=all&state=" + state,
+				dataType: 'json',
+				success: function(json) {
+					indexes = json;
+					$.each(json, function(i, value) {
+						addCity(value);
+					});
+				}
+			});
+			$("#city-name").text(toStateName(state));
+		}
+		
 		function loadCities(state) {
 			$.ajax({
 				url: "api.php",
@@ -224,17 +257,14 @@
 				success: function(json) {
 					data = json;
 					setData(city, state);
-					$.each(json, function(i, value) {
-						let name = value["name"];
-						$("#job").append($('<option>').text(name).attr('value', name));
-					});
 				}
 			});
 		}
 		
 		function setData(city, state) {
 			// clear old data
-			clearData();
+			let jobTable = document.getElementById("job-table");
+			clearTable(jobTable);
 			
 			// load city data
 			$("#city-name").text(capitalize(city) + ", " + state);
@@ -243,10 +273,7 @@
 			let jobs = data;
 			$.each(jobs, function(i, value) {
 				addJob(value);
-			});	
-			
-			// show data
-			$("#data-boxes").css("visibility", "visible");		
+			});		
 		}
 		
 		function addJob(job) {
@@ -255,6 +282,20 @@
 										"<td>" + job["count"] + "</td>" + 
 										"<td>" + formatter.format(job["salary_min"]) + "</td>" + 
 										"<td>" + formatter.format(job["salary_max"]) + "</td>" + 
+									"</tr>");
+		}
+		
+		function addCity(city) {
+			$("#city-table").append("<tr class='city-data-row' id='" + city["city"] + "'>" +
+										"<td>" + city["city"] + "</td>" +
+										"<td>" + city["quality_of_life"] + "</td>" +
+										"<td>" + city["crime"] + "</td>" +
+										"<td>" + city["groceries"] + "</td>" +
+										"<td>" + city["health"] + "</td>" +
+										"<td>" + city["pollution"] + "</td>" +
+										"<td>" + city["rent"] + "</td>" +
+										"<td>" + city["safety"] + "</td>" +
+										"<td>" + city["traffic"] + "</td>" +
 									"</tr>");
 		}
 		
@@ -293,7 +334,17 @@
 				if (value["name"] == name) {
 					addJob(value);
 				}
-			})
+			});
+		}
+		
+		function showCityIndex(city) {
+			let cityTable = document.getElementById("city-table");
+			clearTable(cityTable);
+			$.each(indexes, function(i, value) {
+				if (value["city"] == city) {
+					addCity(value);
+				}
+			});
 		}
 
 		/** Removes census data from each shape on the map and resets the UI. */

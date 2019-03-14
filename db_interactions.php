@@ -54,6 +54,31 @@
 		return $data;
 	}
 	
+	function getStateIndeces($mysqli, $stateAbbreviation) {
+		if (!$res = $mysqli->query("select l.l_city,l.l_state,i.i_crime,i.i_groceries,i.i_health,i.i_location,i.i_pollution,i.i_quality_of_life,i.i_rent,i.i_safety,i.i_traffic 
+			from cm_index i left join  cm_location l on i.iid = l.lid 
+			where l.l_state = '$stateAbbreviation'")) {
+				echo "Failed Select";
+		}
+		
+		$data = [];
+		while ($row = $res->fetch_assoc()) {
+			$r = [];
+			$r['city'] = $row['l_city'];
+			$r['crime'] = $row['i_crime'];
+			$r['groceries'] = $row['i_groceries'];
+			$r['health'] = $row['i_health'];
+			$r['pollution'] = $row['i_pollution'];
+			$r['quality_of_life'] = $row['i_quality_of_life'];
+			$r['rent'] = $row['i_rent'];
+			$r['safety'] = $row['i_safety'];
+			$r['traffic'] = $row['i_traffic'];
+			array_push($data, $r);
+		}
+		
+		return $data;
+	}
+	
 	function getIndex($mysqli, $index) {
 		$sql = "";
 		switch ($index) {

@@ -30,14 +30,18 @@ th, td {
 	padding: 5px;
 }
 
-#data-boxes div {
-	display: inline-block;
+#job-data {
+	display: none;
 }
 
 #data-boxes {
 	text-align: center;
-	visibility: hidden;
 	margin-bottom: 100px;
+}
+
+#data-boxes table {
+	margin-right: auto;
+	margin-left: auto;
 }
 
 .nicebox {
@@ -63,6 +67,11 @@ th, td {
 
 #title {
 	text-align: center;
+	background-color: #4c4c4c;
+	color: white;
+	padding: 0;
+	margin: 0;
+	height: 70px;
 }
 
 #data-box {
