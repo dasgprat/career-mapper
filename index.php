@@ -287,17 +287,25 @@
 									"</tr>");
 		}
 		
+		function checkNull(value) {
+			if (value == null) {
+				return "N/A";
+			} else {
+				return value;
+			}
+		}
+		
 		function addCity(city) {
 			$("#city-table").append("<tr class='city-data-row' id='" + city["city"] + "'>" +
 										"<td>" + city["city"] + "</td>" +
-										"<td>" + city["quality_of_life"] + "</td>" +
-										"<td>" + city["crime"] + "</td>" +
-										"<td>" + city["groceries"] + "</td>" +
-										"<td>" + city["health"] + "</td>" +
-										"<td>" + city["pollution"] + "</td>" +
-										"<td>" + city["rent"] + "</td>" +
-										"<td>" + city["safety"] + "</td>" +
-										"<td>" + city["traffic"] + "</td>" +
+										"<td>" + checkNull(city["quality_of_life"]) + "</td>" +
+										"<td>" + checkNull(city["crime"]) + "</td>" +
+										"<td>" + checkNull(city["groceries"]) + "</td>" +
+										"<td>" + checkNull(city["health"]) + "</td>" +
+										"<td>" + checkNull(city["pollution"]) + "</td>" +
+										"<td>" + checkNull(city["rent"]) + "</td>" +
+										"<td>" + checkNull(city["safety"]) + "</td>" +
+										"<td>" + checkNull(city["traffic"]) + "</td>" +
 									"</tr>");
 		}
 		
